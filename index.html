@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ScreenTime</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0c0c18;
+    --surface: #14142a;
+    --card: #1c1c38;
+    --border: #2a2a50;
+    --text: #e8e8f0;
+    --dim: #8888aa;
+    --muted: #585878;
+    --green: #34d399;
+    --red: #f87171;
+    --accent: #67e8f9;
+    --bar: #2d2d55;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 20px;
+    min-height: 100vh;
+  }
+
+  .container { max-width: 800px; margin: 0 auto; }
+
+  /* --- Header --- */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  /* --- Status Pill --- */
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    background: rgba(52, 211, 153, 0.15);
+    color: var(--green);
+    border: 1px solid rgba(52, 211, 153, 0.3);
+    transition: all 0.3s;
+    white-space: nowrap;
+  }
+  .status-pill .pill-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 6px rgba(52, 211, 153, 0.6);
+    flex-shrink: 0;
+  }
+  .status-pill.offline {
+    background: rgba(248, 113, 113, 0.15);
+    color: var(--red);
+    border-color: rgba(248, 113, 113, 0.3);
+  }
+  .status-pill.offline .pill-dot {
+    background: var(--red);
+    box-shadow: 0 0 6px rgba(248, 113, 113, 0.6);
+  }
+  .status-pill.waiting {
+    background: rgba(136, 136, 170, 0.1);
+    color: var(--dim);
+    border-color: rgba(136, 136, 170, 0.2);
+  }
+  .status-pill.waiting .pill-dot {
+    background: var(--muted);
+    box-shadow: none;
+  }
+  .status-pill .pill-text {
+    line-height: 1;
+  }
+  .header h1 {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+
+  /* --- Current Activity --- */
+  .current-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+  }
+  .current-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .current-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .current-name {
+    font-size: 22px;
+    font-weight: 700;
+  }
+  .current-title {
+    font-size: 14px;
+    color: var(--dim);
+  }
+  .current-timer {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--accent);
+    margin-left: auto;
+    font-variant-numeric: tabular-nums;
+  }
+  .current-offline {
+    color: var(--muted);
+    font-size: 16px;
+    font-weight: 500;
+  }
+
+  /* --- Total Card --- */
+  .total-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .total-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+  }
+  .total-value {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin-left: auto;
+  }
+
+  /* --- App Usage --- */
+  .section-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+  }
+  .section-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  .app-row {
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .app-row:last-child { border-bottom: none; }
+  .app-icon {
+    width: 32px; height: 32px;
+    border-radius: 6px;
+    background: var(--card);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    margin-right: 10px;
+    flex-shrink: 0;
+  }
+  .app-name {
+    font-size: 13px;
+    font-weight: 600;
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .app-bar {
+    width: 100px;
+    height: 5px;
+    background: var(--bar);
+    border-radius: 3px;
+    overflow: hidden;
+    margin: 0 12px;
+    flex-shrink: 0;
+  }
+  .app-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: var(--accent);
+    transition: width 0.5s;
+  }
+  .app-time {
+    font-size: 13px;
+    font-weight: 600;
+    width: 52px;
+    text-align: right;
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* --- Timeline --- */
+  .timeline { padding-left: 20px; position: relative; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 6px; top: 4px; bottom: 4px;
+    width: 2px;
+    background: var(--border);
+  }
+  .tl-item {
+    position: relative;
+    padding: 6px 0 6px 14px;
+  }
+  .tl-item::before {
+    content: '';
+    position: absolute;
+    left: -18px; top: 12px;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--card);
+    border: 2px solid var(--dim);
+  }
+  .tl-app {
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .tl-meta {
+    font-size: 11px;
+    color: var(--dim);
+    margin-top: 1px;
+  }
+
+  /* --- Empty --- */
+  .empty {
+    text-align: center;
+    padding: 32px 16px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  @media (max-width: 600px) {
+    body { padding: 12px; }
+    .current-row { flex-direction: column; align-items: flex-start; }
+    .current-timer { margin-left: 0; }
+    .total-card { flex-wrap: wrap; }
+    .total-value { margin-left: 0; }
+    .app-bar { width: 60px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <h1>ScreenTime</h1>
+    </div>
+    <div class="status-pill waiting" id="statusPill">
+      <span class="pill-dot"></span>
+      <span class="pill-text" id="statusText">waiting...</span>
+    </div>
+  </div>
+
+  <!-- Current Activity -->
+  <div class="current-box" id="currentBox">
+    <div class="current-label">Currently Active</div>
+    <div class="current-row" id="currentRow">
+      <span class="current-offline" id="currentApp">Waiting...</span>
+      <span class="current-title" id="currentTitle"></span>
+      <span class="current-timer" id="currentTimer">--</span>
+    </div>
+  </div>
+
+  <!-- Total Time -->
+  <div class="total-card">
+    <span class="total-label">Total Time Today</span>
+    <span class="total-value" id="totalToday">0h 0m</span>
+  </div>
+
+  <!-- App Usage -->
+  <div class="section-card">
+    <div class="section-title">App Usage</div>
+    <div id="appUsageList">
+      <div class="empty">No data yet today</div>
+    </div>
+  </div>
+
+  <!-- Timeline (full day) -->
+  <div class="section-card">
+    <div class="section-title">Today's Timeline</div>
+    <div class="timeline" id="timeline">
+      <div class="empty">No activity recorded</div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://civrdwybhcphwbqxsnhc.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNpdnJkd3liaGNwaHdicXhzbmhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyMDY0OTYsImV4cCI6MjA5NDc4MjQ5Nn0.Knakff7i_JFnsSks9eBv8kKMKPdENn-WYo6W6uOvASo';
+
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  realtime: { params: { eventsPerSecond: 10 } },
+});
+
+// --- State ---
+let activityStartTime = null;
+let timerInterval = null;
+let lastUpdatedAt = null;
+
+// --- Helpers ---
+function fmt(seconds) {
+  if (!seconds || seconds < 0) return '0m';
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  if (h > 0) return `${h}h ${m}m`;
+  if (m > 0) return `${m}m`;
+  return `${Math.floor(seconds)}s`;
+}
+
+function fmtTime(iso) {
+  if (!iso) return '--';
+  try { return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
+  catch { return iso; }
+}
+
+function appIcon(name) {
+  const m = {
+    chrome: '🌐', firefox: '🦊', edge: '🌐', brave: '🌐', opera: '🌐',
+    code: '💻', 'visual studio': '💻', 'vs code': '💻', cursor: '💻',
+    word: '📝', excel: '📊', powerpoint: '📽', onenote: '📓',
+    outlook: '📧', teams: '💬', discord: '💬', slack: '💬',
+    spotify: '🎵', youtube: '▶️', netflix: '▶️',
+    explorer: '📁', terminal: '⌨️', cmd: '⌨️', powershell: '⌨️',
+    notepad: '📄', calculator: '🔢',
+  };
+  for (const [k, v] of Object.entries(m)) { if (name.toLowerCase().includes(k)) return v; }
+  return '📱';
+}
+
+// --- Status (Online / Offline based on updated_at) ---
+// This is the authoritative source: when offline, it ALWAYS clears the
+// stale current activity display. Every status check enforces this.
+function updateStatus() {
+  const pill = document.getElementById('statusPill');
+  const txt = document.getElementById('statusText');
+  const appEl = document.getElementById('currentApp');
+  const titleEl = document.getElementById('currentTitle');
+  const timerEl = document.getElementById('currentTimer');
+
+  if (!lastUpdatedAt) {
+    pill.className = 'status-pill waiting';
+    txt.textContent = '⏳ waiting...';
+    appEl.textContent = '💤 Waiting';
+    appEl.className = 'current-offline';
+    titleEl.textContent = '';
+    timerEl.textContent = '--';
+    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+    return;
+  }
+
+  const elapsed = Date.now() - new Date(lastUpdatedAt).getTime();
+  const secs = elapsed / 1000;
+
+  if (secs < 90) {
+    pill.className = 'status-pill';
+    txt.textContent = '🟢 Online';
+  } else {
+    pill.className = 'status-pill offline';
+    txt.textContent = `🔴 Offline — ${Math.floor(secs / 60)}m ago`;
+    // Force-clear stale current activity — no stale app should stay visible
+    appEl.textContent = '💤 Offline';
+    appEl.className = 'current-offline';
+    titleEl.textContent = '';
+    timerEl.textContent = '--';
+    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  }
+}
+
+// --- Current Activity ---
+function renderCurrentActivity(data) {
+  const appEl = document.getElementById('currentApp');
+  const titleEl = document.getElementById('currentTitle');
+  const timerEl = document.getElementById('currentTimer');
+
+  // No data or empty — show idle. Status tick will override to "Offline" if stale.
+  if (!data || !data.app_name || data.app_name === 'Not running' || data.app_name === '') {
+    appEl.textContent = '💤 Idle';
+    appEl.className = 'current-offline';
+    titleEl.textContent = '';
+    timerEl.textContent = '--';
+    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+    return;
+  }
+
+  appEl.textContent = `${appIcon(data.app_name)} ${data.app_name}`;
+  appEl.className = 'current-name';
+  titleEl.textContent = data.window_title || '';
+
+  // Timer (counts up from started_at)
+  // started_at now comes with timezone from Supabase; don't blindly append 'Z'
+  let started = Date.now();
+  if (data.started_at) {
+    const t = new Date(data.started_at).getTime();
+    if (!isNaN(t)) started = t;
+  }
+  activityStartTime = started;
+  if (timerInterval) clearInterval(timerInterval);
+  function tick() {
+    const e = Math.floor((Date.now() - activityStartTime) / 1000);
+    timerEl.textContent = fmt(e);
+  }
+  tick();
+  timerInterval = setInterval(tick, 1000);
+}
+
+// --- App Usage (grouped by app) ---
+function renderAppUsage(rows) {
+  const el = document.getElementById('appUsageList');
+  const totalEl = document.getElementById('totalToday');
+
+  if (!rows || rows.length === 0) {
+    el.innerHTML = '<div class="empty">No data yet today</div>';
+    totalEl.textContent = '0h 0m';
+    return;
+  }
+
+  // Group by app_name, sum durations
+  const map = {};
+  for (const r of rows) {
+    const n = r.app_name;
+    if (!map[n]) map[n] = 0;
+    map[n] += r.duration_seconds || 0;
+  }
+
+  // Sort by total desc, hide apps with < 1 min
+  const sorted = Object.entries(map).sort((a, b) => b[1] - a[1]);
+  const grandTotal = sorted.reduce((s, [, v]) => s + v, 0);
+  totalEl.textContent = fmt(grandTotal);
+
+  el.innerHTML = sorted
+    .filter(([, dur]) => dur >= 60)
+    .map(([name, dur]) => {
+    const pct = grandTotal > 0 ? (dur / grandTotal) * 100 : 0;
+    return `<div class="app-row">
+      <div class="app-icon">${appIcon(name)}</div>
+      <div class="app-name">${name}</div>
+      <div class="app-bar"><div class="app-bar-fill" style="width:${pct}%"></div></div>
+      <div class="app-time">${fmt(dur)}</div>
+    </div>`;
+  }).join('');
+}
+
+// --- Timeline (full day, no 0-duration noise) ---
+function renderTimeline(rows) {
+  const el = document.getElementById('timeline');
+
+  if (!rows || rows.length === 0) {
+    el.innerHTML = '<div class="empty">No activity recorded today</div>';
+    return;
+  }
+
+  // Filter out sub-10s noise (task switches)
+  const filtered = rows.filter(r => (r.duration_seconds || 0) >= 10);
+
+  if (filtered.length === 0) {
+    el.innerHTML = '<div class="empty">No significant activity recorded today</div>';
+    return;
+  }
+
+  el.innerHTML = filtered.map(r => {
+    const dur = r.duration_seconds || 0;
+    return `<div class="tl-item">
+      <div class="tl-app">${appIcon(r.app_name)} ${r.app_name}</div>
+      <div class="tl-meta">${fmtTime(r.start_time)} · ${fmt(dur)}${r.window_title ? ` · ${r.window_title}` : ''}</div>
+    </div>`;
+  }).join('');
+}
+
+// --- Fetch Today's Data ---
+async function fetchToday() {
+  try {
+    const start = new Date(); start.setHours(0, 0, 0, 0);
+    const { data, error } = await sb
+      .from('activity_logs')
+      .select('app_name, duration_seconds')
+      .gte('start_time', start.toISOString());
+    if (error) throw error;
+    renderAppUsage(data);
+  } catch (e) {
+    console.warn('fetchUsage:', e.message);
+  }
+}
+
+async function fetchTimeline() {
+  try {
+    const start = new Date(); start.setHours(0, 0, 0, 0);
+    const { data, error } = await sb
+      .from('activity_logs')
+      .select('app_name, window_title, start_time, duration_seconds')
+      .gte('start_time', start.toISOString())
+      .order('start_time', { ascending: false });
+    if (error) throw error;
+    renderTimeline(data);
+  } catch (e) {
+    console.warn('fetchTimeline:', e.message);
+  }
+}
+
+// --- Realtime / Current Activity ---
+async function fetchCurrentActivity() {
+  try {
+    const { data, error } = await sb
+      .from('current_activity')
+      .select('*')
+      .eq('id', 1)
+      .single();
+    if (error) throw error;
+    lastUpdatedAt = data.updated_at;
+    renderCurrentActivity(data);
+    updateStatus();
+  } catch (e) {
+    console.warn('fetchCurrent:', e.message);
+  }
+}
+
+function subscribeCurrent() {
+  sb.channel('current-changes')
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'current_activity', filter: 'id=eq.1' },
+      (payload) => {
+        lastUpdatedAt = payload.new.updated_at;
+        renderCurrentActivity(payload.new);
+        updateStatus();
+      }
+    )
+    .subscribe((s) => { if (s === 'SUBSCRIBED') fetchCurrentActivity(); });
+}
+
+// --- Status heartbeat (every 15s) ---
+// updateStatus() is the authoritative source — it clears stale current activity
+// whenever it detects offline. No separate stale-render needed.
+setInterval(() => { updateStatus(); }, 15000);
+
+// --- Init ---
+fetchToday();
+fetchTimeline();
+subscribeCurrent();
+setInterval(fetchToday, 30000);
+setInterval(fetchTimeline, 60000);
+// Poll current activity periodically as a fallback in case real-time drops
+setInterval(fetchCurrentActivity, 30000);
+</script>
+</body>
+</html>
